@@ -1,0 +1,1 @@
+export const TestButton = () => ({ tag: 'div', props: {}, children: ['Component: TestButton'] });

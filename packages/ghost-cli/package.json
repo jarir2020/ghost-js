@@ -1,0 +1,11 @@
+{
+    "name": "ghost-cli",
+    "version": "0.1.0",
+    "type": "module",
+    "bin": {
+        "ghost": "src/cli.js"
+    },
+    "dependencies": {
+        "esbuild": "^0.20.0"
+    }
+}

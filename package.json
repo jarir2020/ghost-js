@@ -1,0 +1,14 @@
+{
+  "name": "ghost-js-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "npm test --workspaces"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.2",
+    "jest": "^29.0.0"
+  }
+}

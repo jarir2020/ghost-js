@@ -1,0 +1,14 @@
+{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@ghost-js/core": "latest",
+    "@ghost-js/paradigms": "latest",
+    "@ghost-js/router": "latest"
+  },
+  "scripts": {
+    "dev": "ghost dev",
+    "build": "ghost build"
+  }
+}

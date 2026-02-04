@@ -1,0 +1,107 @@
+Name
+
+Ghost Framework (Ghost.js)
+Positioning: invisible, fast, opinionated but light
+
+Core Philosophy: Modular Import System
+Instead of being a "monolithic" framework, Ghost allows you to import specific "Paradigms" from existing frameworks, improved with Ghost's core engine:
+
+1. React Paradigm (import { useHook, Component }) [DONE]
+   - Hook lifecycle fixed at compile time
+   - Deterministic re-rendering (no implicit re-renders)
+   - No virtual DOM → direct DOM ops with diff hints
+
+2. Vue Paradigm (import { reactive, computed }) [DONE]
+   - Reactive primitives only (no magic proxies)
+   - Computed = cached pure functions
+   - No watchers (state derivation only)
+
+3. Angular Paradigm (import { Injectable, Form }) [DONE]
+   - Compile-time DI
+   - Typed event graph
+   - No decorators, no reflection
+
+4. Svelte/Solid Paradigm (import { signal, compile }) [DONE]
+   - Fine-grained reactivity
+   - Zero runtime core
+   - Dead code elimination by default
+
+5. Next/Nuxt Paradigm (import { route, ssr }) [DONE]
+   - File-based routing with Nested Layouts
+   - Router as data
+   - SSR opt-in per component
+   - Zero-config boot with composable feature packs
+
+Truly UNIQUE features Ghost introduces (Differentiators):
+
+1. No global state concept [DONE]
+   State is local by default, promoted explicitly.
+   local state → shared state (scoped) → persistent state
+
+2. Render graph instead of component tree [DONE]
+   UI = directed graph
+   Dependencies explicit
+   Predictable updates
+
+3. Zero-JS fallback [DONE]
+   HTML works without JS
+   JS enhances progressively
+   SEO + accessibility native
+
+4. Time-boxed rendering [DONE]
+   Rendering limited per frame (60fps lock)
+   No UI lockups; automatic yield
+
+5. Event-driven UI core [DONE]
+   No lifecycle hooks. Use: on("mount"), on("update"), on("destroy")
+
+6. Native async UI [DONE]
+   Async state is first-class. No loading flags needed.
+   const user = asyncState(fetchUser)
+
+7. Explicit side-effects [DONE]
+   Side-effects must be declared: effect(logState). No hidden effects.
+
+8. CSS as first-class [DONE]
+   Scoped by default, runtime theming, no CSS-in-JS overhead.
+
+9. Built-in Testing & Harness [DONE]
+   Predictable updates allow for deterministic integration tests out of the box.
+
+10. Visual DevTools (Render Graph Inspector) [DONE]
+    Visualize the dependency graph of the UI in real-time.
+
+11. Asset Pipeline [DONE]
+    First-class support for importing assets (images, fonts, styles) with optimization.
+
+12. File size ceiling [DONE]
+    Framework refuses to grow past 5kb (gzipped). Hard rule.
+
+13. Dev mode = production parity [DONE]
+    No dev-only behavior. No hydration mismatch bugs.
+
+Definition:
+Ghost Framework is a compiler-first, runtime-invisible frontend framework with deterministic rendering and zero magic.
+
+To make Ghost.js a truly independent, world-class framework, I suggest we implement the following "Independence Pillar" features:
+
+Ghost Bundler (The "Compiler" Pillar) [DONE]:
+Replace generic bundlers with a specialized esbuild-based pipeline.
+Optimized specifically for the Ghost Render Graph and Signal system.
+Enables the "Zero Runtime Core" promise by stripping everything but the raw DOM ops.
+Ghost Router (The "Structure" Pillar) [DONE]:
+Native file-based routing.
+Supports "Layouts" as static graph nodes that don't re-render when children change.
+First-class support for SSR and partial hydration.
+Active Style (The "Style" Pillar) [DONE]:
+Scoped CSS that can bind directly to Signals (e.g., color: s(themeColor)).
+No CSS-in-JS runtime overhead; compiled to CSS variables.
+Ghost Data (The "Async" Pillar) [DONE]:
+asyncSignal for data fetching.
+Built-in "Suspense-like" behavior using the Render Graph events.
+Automatic caching and deduplication.
+Visual Graph Inspector (The "DevExperience" Pillar) [DONE]:
+A HUD (Head-Up Display) in development mode.
+Visualize the directed graph of your UI to see exactly what updates when a signal changes.
+
+

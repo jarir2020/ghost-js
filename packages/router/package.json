@@ -1,0 +1,9 @@
+{
+    "name": "@ghost-js/router",
+    "version": "0.1.0",
+    "main": "src/index.js",
+    "type": "module",
+    "dependencies": {
+        "@ghost-js/core": "0.1.0"
+    }
+}

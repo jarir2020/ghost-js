@@ -1,0 +1,1 @@
+export const TestPage = () => ({ tag: 'div', props: {}, children: ['View: TestPage'] });
