@@ -23,6 +23,11 @@ cd packages/ghost-cli
 npm link
 ```
 
+### Alternatively, use npx (requires publishing first)
+```bash
+npx @ghost-js/cli create my-phantom-app
+```
+
 ### 2. Create a New Project
 ```bash
 ghost create my-phantom-app

@@ -19,12 +19,6 @@ export async function build(projectRoot, options = {}) {
         process.exit(1);
     }
 
-    const alias = {
-        '@ghost-js/core': join(projectRoot, '../packages/core/src/index.js'),
-        '@ghost-js/paradigms': join(projectRoot, '../packages/paradigms/src/index.js'),
-        '@ghost-js/router': join(projectRoot, '../packages/router/src/index.js')
-    };
-
     try {
         await esbuild.build({
             entryPoints: {
@@ -37,7 +31,6 @@ export async function build(projectRoot, options = {}) {
             format: 'esm',
             platform: 'browser',
             plugins: [ghostAssetPlugin()],
-            alias,
             loader: { '.js': 'jsx', '.png': 'file', '.jpg': 'file' },
         });
         console.log('Build completed successfully!');
@@ -57,12 +50,6 @@ export async function serve(projectRoot) {
         process.exit(1);
     }
 
-    const alias = {
-        '@ghost-js/core': join(projectRoot, '../packages/core/src/index.js'),
-        '@ghost-js/paradigms': join(projectRoot, '../packages/paradigms/src/index.js'),
-        '@ghost-js/router': join(projectRoot, '../packages/router/src/index.js')
-    };
-
     const ctx = await esbuild.context({
         entryPoints: {
             bundle: join(projectRoot, 'src/index.js')
@@ -71,7 +58,6 @@ export async function serve(projectRoot) {
         outdir: join(projectRoot, 'dist'),
         format: 'esm',
         platform: 'browser',
-        alias,
         banner: {
             js: `new EventSource('/esbuild').onmessage = () => location.reload();`,
         },

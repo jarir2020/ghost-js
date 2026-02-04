@@ -1,9 +1,12 @@
 {
     "name": "@ghost-js/router",
-    "version": "0.1.0",
+    "version": "0.1.2",
     "main": "src/index.js",
     "type": "module",
     "dependencies": {
-        "@ghost-js/core": "0.1.0"
+        "@ghost-js/core": "0.1.2"
+    },
+    "publishConfig": {
+        "access": "public"
     }
 }

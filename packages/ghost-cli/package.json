@@ -1,11 +1,14 @@
 {
-    "name": "ghost-cli",
-    "version": "0.1.0",
+    "name": "@ghost-js/cli",
+    "version": "0.1.2",
     "type": "module",
     "bin": {
         "ghost": "src/cli.js"
     },
     "dependencies": {
         "esbuild": "^0.20.0"
+    },
+    "publishConfig": {
+        "access": "public"
     }
 }

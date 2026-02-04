@@ -1,9 +1,12 @@
 {
     "name": "@ghost-js/compiler",
-    "version": "0.1.0",
+    "version": "0.1.2",
     "main": "src/index.js",
     "type": "module",
     "scripts": {
         "test": "jest"
+    },
+    "publishConfig": {
+        "access": "public"
     }
 }

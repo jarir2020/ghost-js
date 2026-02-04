@@ -1,12 +1,15 @@
 {
     "name": "@ghost-js/paradigms",
-    "version": "0.1.0",
+    "version": "0.1.2",
     "main": "src/index.js",
     "type": "module",
     "scripts": {
         "test": "jest"
     },
     "dependencies": {
-        "@ghost-js/core": "0.1.0"
+        "@ghost-js/core": "0.1.2"
+    },
+    "publishConfig": {
+        "access": "public"
     }
 }
