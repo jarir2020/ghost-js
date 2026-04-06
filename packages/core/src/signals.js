@@ -1,7 +1,27 @@
+// Ghost Signals — updated 2026-04-06 (added error boundaries)
 let activeEffect = null;
 const contextStack = [];
 let pendingEffects = new Set();
 let batchDepth = 0;
+
+// Global error handler — set via onError(fn)
+let globalErrorHandler = null;
+
+/**
+ * Register a global error handler for unhandled effect errors.
+ * @param {(err: Error, effectFn: Function) => void} fn
+ */
+export function onError(fn) {
+    globalErrorHandler = fn;
+}
+
+function handleEffectError(err, fn) {
+    if (globalErrorHandler) {
+        globalErrorHandler(err, fn);
+    } else {
+        console.error('[Ghost] Unhandled effect error:', err);
+    }
+}
 
 export function signal(initialValue) {
     let value = initialValue;
@@ -55,6 +75,9 @@ export function effect(fn) {
             activeEffect = effectObj;
             try {
                 fn();
+            } catch (err) {
+                // Error boundary: isolate error so other effects keep running
+                handleEffectError(err, fn);
             } finally {
                 activeEffect = contextStack.pop();
             }

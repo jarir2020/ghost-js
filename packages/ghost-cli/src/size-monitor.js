@@ -1,20 +1,26 @@
-import { statSync } from 'fs';
+// Ghost Size Monitor — updated 2026-04-06
+// Uses actual gzip compression to verify the 5KB ceiling, not raw bytes.
+import { readFileSync } from 'fs';
 import { gzipSync } from 'zlib';
 
-const MAX_SIZE = 5 * 1024; // 5KB
+const MAX_GZIP_SIZE = 5 * 1024; // 5 KB gzipped — the hard ceiling
 
 export function checkSize(filePath) {
-    const stats = statSync(filePath);
-    const content = statSync(filePath).size;
-    // In a real implementation, we'd read the file and gzip it
-    // But for this simulation, we'll just check the raw size
+    const content = readFileSync(filePath);
+    const gzipped = gzipSync(content);
+    const rawKB   = (content.length  / 1024).toFixed(2);
+    const gzipKB  = (gzipped.length  / 1024).toFixed(2);
 
-    console.log(`Checking file size: ${filePath}`);
-    console.log(`Raw Size: ${(stats.size / 1024).toFixed(2)} KB`);
+    console.log(`[Ghost Size Monitor] ${filePath}`);
+    console.log(`  Raw:    ${rawKB} KB`);
+    console.log(`  Gzip:   ${gzipKB} KB  (limit: 5.00 KB)`);
 
-    if (stats.size > MAX_SIZE) {
-        console.warn(`⚠️ WARNING: File ${filePath} exceeds the 5KB limit!`);
-    } else {
-        console.log(`✅ File size within limits.`);
+    if (gzipped.length > MAX_GZIP_SIZE) {
+        const over = ((gzipped.length - MAX_GZIP_SIZE) / 1024).toFixed(2);
+        console.warn(`  ⚠️  OVER LIMIT by ${over} KB — Ghost must stay under 5 KB gzipped!`);
+        return false;
     }
+
+    console.log(`  ✅ Within the 5 KB gzip ceiling.`);
+    return true;
 }

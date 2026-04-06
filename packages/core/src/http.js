@@ -1,47 +1,34 @@
-/**
- * Ghost HTTP Pillar
- * Specialized fetch wrapper for Ghost.js with JSON/XML support.
- */
+// Ghost HTTP — updated 2026-04-06
+// Added: in-memory cache, request/response interceptors
 
-/**
- * Simple XML to JSON-like object converter
- * (Minimalistic for under 5KB target)
- */
+// ─── XML parser ───────────────────────────────────────────────────────────────
+
 export function xml2json(xmlString) {
-    if (typeof window === 'undefined') return {};
-
+    if (typeof window === 'undefined' || !window.DOMParser) return {};
     const parser = new DOMParser();
-    const doc = parser.parseFromString(xmlString, 'text/xml');
+    const doc    = parser.parseFromString(xmlString, 'text/xml');
 
     function parseNode(node) {
         const obj = {};
-        if (node.nodeType === 1) { // element
-            if (node.attributes.length > 0) {
-                obj["@attributes"] = {};
-                for (let j = 0; j < node.attributes.length; j++) {
-                    const attribute = node.attributes.item(j);
-                    obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
-                }
+        if (node.nodeType === 3) return node.nodeValue.trim(); // text node
+
+        if (node.attributes?.length) {
+            obj['@attributes'] = {};
+            for (const attr of node.attributes) {
+                obj['@attributes'][attr.nodeName] = attr.nodeValue;
             }
-        } else if (node.nodeType === 3) { // text
-            return node.nodeValue.trim();
         }
 
-        if (node.hasChildNodes()) {
-            for (let i = 0; i < node.childNodes.length; i++) {
-                const item = node.childNodes.item(i);
-                const nodeName = item.nodeName;
-                if (typeof obj[nodeName] === "undefined") {
-                    const parsed = parseNode(item);
-                    if (parsed !== "") obj[nodeName] = parsed;
-                } else {
-                    if (typeof obj[nodeName].push === "undefined") {
-                        const old = obj[nodeName];
-                        obj[nodeName] = [];
-                        obj[nodeName].push(old);
-                    }
-                    obj[nodeName].push(parseNode(item));
-                }
+        for (const child of node.childNodes) {
+            const name   = child.nodeName;
+            const parsed = parseNode(child);
+            if (parsed === '') continue;
+
+            if (obj[name] === undefined) {
+                obj[name] = parsed;
+            } else {
+                if (!Array.isArray(obj[name])) obj[name] = [obj[name]];
+                obj[name].push(parsed);
             }
         }
         return obj;
@@ -50,25 +37,89 @@ export function xml2json(xmlString) {
     return parseNode(doc.documentElement);
 }
 
+// ─── Cache ────────────────────────────────────────────────────────────────────
+
+const _cache = new Map(); // key: `${method}:${url}` → parsed response
+
+function cacheKey(url, method = 'GET') {
+    return `${method.toUpperCase()}:${url}`;
+}
+
+/** Clear the entire in-memory HTTP cache (or a single entry). */
+export function clearHttpCache(url, method = 'GET') {
+    if (url) _cache.delete(cacheKey(url, method));
+    else _cache.clear();
+}
+
+// ─── Interceptors ─────────────────────────────────────────────────────────────
+
 /**
- * Advanced Fetch Wrapper
+ * ghostFetch.interceptors.request  — array of (config) => config
+ * ghostFetch.interceptors.response — array of (response, data) => data
+ *
+ * Usage:
+ *   ghostFetch.interceptors.request.push(cfg => {
+ *     cfg.headers = { ...cfg.headers, Authorization: `Bearer ${token}` };
+ *     return cfg;
+ *   });
+ */
+ghostFetch.interceptors = {
+    request:  [],
+    response: []
+};
+
+// ─── ghostFetch ───────────────────────────────────────────────────────────────
+
+/**
+ * Ghost's fetch wrapper.
+ *
+ * Options (extends standard fetch):
+ *   cache: 'memory' | false   — cache GET responses in memory (default false)
+ *   All standard fetch options are forwarded.
  */
 export async function ghostFetch(url, options = {}) {
-    const response = await fetch(url, options);
-    const contentType = response.headers.get('content-type');
+    const { cache: useCache = false, ...fetchOptions } = options;
+    const method = (fetchOptions.method || 'GET').toUpperCase();
+
+    // Apply request interceptors
+    let config = { url, ...fetchOptions };
+    for (const interceptor of ghostFetch.interceptors.request) {
+        config = interceptor(config) ?? config;
+    }
+    const resolvedUrl = config.url;
+    delete config.url;
+
+    // Check in-memory cache (GET only)
+    const key = cacheKey(resolvedUrl, method);
+    if (useCache === 'memory' && method === 'GET' && _cache.has(key)) {
+        return _cache.get(key);
+    }
+
+    const response = await fetch(resolvedUrl, config);
+    const contentType = response.headers.get('content-type') || '';
 
     if (!response.ok) {
         throw new Error(`Ghost-HTTP Error: ${response.status} ${response.statusText}`);
     }
 
-    if (contentType && contentType.includes('application/xml') || contentType && contentType.includes('text/xml')) {
-        const text = await response.text();
-        return xml2json(text);
+    let data;
+    if (contentType.includes('application/xml') || contentType.includes('text/xml')) {
+        data = xml2json(await response.text());
+    } else if (contentType.includes('application/json')) {
+        data = await response.json();
+    } else {
+        data = await response.text();
     }
 
-    if (contentType && contentType.includes('application/json')) {
-        return await response.json();
+    // Apply response interceptors
+    for (const interceptor of ghostFetch.interceptors.response) {
+        data = interceptor(response, data) ?? data;
     }
 
-    return await response.text();
+    // Store in cache
+    if (useCache === 'memory' && method === 'GET') {
+        _cache.set(key, data);
+    }
+
+    return data;
 }

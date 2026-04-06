@@ -1,13 +1,15 @@
+// Ghost Bundler — updated 2026-04-06 (added ghostPlugin for .ghost templates, code splitting)
 import { join } from 'path';
 import { ghostAssetPlugin } from './asset-pipeline.js';
 import { checkSize } from './size-monitor.js';
+import { ghostPlugin } from '../../compiler/src/ghost-plugin.js';
 
 export async function build(projectRoot, options = {}) {
     const {
         entryPoint = 'src/index.js',
         outfile = 'dist/bundle.js',
         minify = true,
-        sourcemap = false
+        sourcemap = false  // 'inline' in dev, true (external) in prod — 2026-04-06
     } = options;
 
     const outPath = join(projectRoot, outfile);
@@ -30,7 +32,8 @@ export async function build(projectRoot, options = {}) {
             sourcemap,
             format: 'esm',
             platform: 'browser',
-            plugins: [ghostAssetPlugin()],
+            splitting: true,           // enables lazyNode() code splitting
+            plugins: [ghostPlugin(), ghostAssetPlugin()],
             loader: { '.js': 'jsx', '.png': 'file', '.jpg': 'file' },
         });
         console.log('Build completed successfully!');
@@ -58,6 +61,7 @@ export async function serve(projectRoot) {
         outdir: join(projectRoot, 'dist'),
         format: 'esm',
         platform: 'browser',
+        sourcemap: 'inline',  // inline source maps in dev for readable stack traces — 2026-04-06
         banner: {
             js: `new EventSource('/esbuild').onmessage = () => location.reload();`,
         },

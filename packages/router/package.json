@@ -1,6 +1,6 @@
 {
     "name": "@ghost-js/router",
-    "version": "0.1.2",
+    "version": "0.2.0",
     "main": "src/index.js",
     "type": "module",
     "dependencies": {
@@ -8,5 +8,6 @@
     },
     "publishConfig": {
         "access": "public"
-    }
+    },
+    "types": "index.d.ts"
 }
