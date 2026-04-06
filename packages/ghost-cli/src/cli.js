@@ -19,10 +19,10 @@ if (command === 'create' && param) {
         version: '1.0.0',
         type: 'module',
         dependencies: {
-            "@ghost-js/core": "0.1.2",
-            "@ghost-js/paradigms": "0.1.2",
-            "@ghost-js/router": "0.1.2",
-            "@ghost-js/cli": "0.1.2"
+            "@ghost-js/core": "0.2.0",
+            "@ghost-js/paradigms": "0.2.0",
+            "@ghost-js/router": "0.2.0",
+            "@ghost-js/cli": "0.2.0"
         },
         scripts: {
             "dev": "ghost dev",

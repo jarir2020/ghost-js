@@ -7,7 +7,7 @@
         "test": "jest"
     },
     "dependencies": {
-        "@ghost-js/core": "0.1.2"
+        "@ghost-js/core": "0.2.0"
     },
     "publishConfig": {
         "access": "public"

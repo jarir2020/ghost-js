@@ -2,7 +2,7 @@
 import { join } from 'path';
 import { ghostAssetPlugin } from './asset-pipeline.js';
 import { checkSize } from './size-monitor.js';
-import { ghostPlugin } from '../../compiler/src/ghost-plugin.js';
+import { ghostPlugin } from '@ghost-js/compiler/src/ghost-plugin.js';
 
 export async function build(projectRoot, options = {}) {
     const {
