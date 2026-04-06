@@ -1,12 +1,12 @@
 {
     "name": "@ghost-js/cli",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "type": "module",
     "bin": {
         "ghost": "src/cli.js"
     },
     "dependencies": {
-        "esbuild": "^0.20.0",
+        "esbuild": "^0.28.0",
         "@ghost-js/compiler": "0.2.0",
         "@ghost-js/core": "0.2.0"
     },
