@@ -1,0 +1,12 @@
+{
+    "name": "@ghost-js/database",
+    "version": "0.2.0",
+    "main": "src/index.js",
+    "type": "module",
+    "scripts": {
+        "test": "node test.js"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}

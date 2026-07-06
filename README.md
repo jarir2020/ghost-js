@@ -41,6 +41,9 @@ ghost dev
 ```
 Visit `http://localhost:3000` to see your app in action with full DevTools support.
 
+## 🏷️ Release
+Ghost.js `1.0.0` is the first release line for this framework. The release notes and CLI bundle updates are tracked in [`docs/CHANGELOG.md`](./docs/CHANGELOG.md), including the `ghost make:events --with-notifications` bundle option.
+
 ## 🎭 Framework Paradigms
 Ghost.js is unopinionated about your syntax. Choose the API that fits your team:
 

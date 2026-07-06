@@ -42,5 +42,8 @@ If you are integrating Ghost with a PHP/Laravel project:
 1. Include the Ghost bundle in your `resources/js/app.js`.
 2. Ghost's **HTTP Pillar** (XML/JSON support) makes it perfect for communicating with Laravel/Symfony controllers.
 
+## 5. Recent CLI Release Note
+The `ghost make:events` bundle now supports `--with-notifications`, which scaffolds notification event helpers, notification jobs, notification listeners, and the notification listener bootstrap alongside the existing auth and CRUD bundle options.
+
 ---
 You are now ready to launch! 👻🚀

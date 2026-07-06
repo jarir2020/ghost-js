@@ -22,6 +22,12 @@ import { testAngularDI }      from './angular-di.test.js';
 import { testI18n }           from './i18n.test.js';
 import { testHTTPv2 }         from './http-v2.test.js';
 import { testRouteGuards }    from './route-guards.test.js';
+import { testRuntimeCommands } from './runtime-commands.test.js';
+import { testBackendGenerators } from './backend-generators.test.js';
+import { testDatabaseOrm } from './database-orm.test.js';
+import { testEvents } from './events.test.js';
+import { testStarterTemplates, testDoctorSuggestions, testGuidedStarterResolution, testGuidedStarterScaffoldRespectsAdminToggle, testDoctorFixCreatesFiles, testDoctorDetectsRicherScaffoldGaps, testDoctorMemoryDiagnostics, testCssEditorCliGenerator, testFormBuilderCliGenerator, testStyleInlineCliGenerator } from './starter-templates.test.js';
+import { testHelpContent }    from './help-content.test.js';
 
 async function runAll() {
     try {
@@ -51,6 +57,21 @@ async function runAll() {
         await testI18n();
         await testHTTPv2();
         await testRouteGuards();
+        await testRuntimeCommands();
+        testBackendGenerators();
+        await testDatabaseOrm();
+        await testEvents();
+        await testStarterTemplates();
+        testDoctorSuggestions();
+        await testGuidedStarterResolution();
+        testGuidedStarterScaffoldRespectsAdminToggle();
+        await testDoctorFixCreatesFiles();
+        await testDoctorDetectsRicherScaffoldGaps();
+        testDoctorMemoryDiagnostics();
+        testCssEditorCliGenerator();
+        testFormBuilderCliGenerator();
+        testStyleInlineCliGenerator();
+        testHelpContent();
 
         console.log('\n🌟 ALL GHOST.JS TESTS PASSED! 🌟');
     } catch (e) {
