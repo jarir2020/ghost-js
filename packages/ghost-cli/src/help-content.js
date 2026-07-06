@@ -52,6 +52,12 @@ const commandCatalog = [
         outputs: ['help text', 'structured help JSON']
     },
     {
+        name: 'ghost help starters',
+        purpose: 'browse the starter gallery by stack',
+        category: 'help',
+        outputs: ['help text', 'structured starter catalog']
+    },
+    {
         name: 'ghost make:form-builder <name>',
         purpose: 'scaffold a form builder workspace',
         category: 'visual-builder',
@@ -304,7 +310,8 @@ function starterHelpData() {
     return {
         title: 'Starter templates',
         items: [
-            templates.join(', '),
+            `${templates.length} starter templates available.`,
+            'Browse the gallery with `ghost help starters` to see grouped stacks and template names.',
             'Recommended starters:',
             '- blog: content sites and CMS-style apps',
             '- admin-panel: internal dashboards and management tools',
@@ -319,20 +326,56 @@ function starterHelpData() {
     };
 }
 
+function starterStackGalleryData() {
+    const grouped = new Map();
+
+    for (const name of getStarterNames()) {
+        const template = getStarterTemplate(name);
+        const stack = template?.stack || 'ghost-native';
+        if (!grouped.has(stack)) {
+            grouped.set(stack, []);
+        }
+        grouped.get(stack).push(name);
+    }
+
+    return {
+        title: 'Starter stacks',
+        items: [...grouped.entries()]
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([stack, names]) => `- ${stack}: ${names.join(', ')} (${names.length})`)
+    };
+}
+
 export function buildStarterCatalogData() {
     const templates = getStarterNames().map((name) => {
         const template = getStarterTemplate(name);
         return {
             name,
             description: template?.description ?? '',
+            stack: template?.stack ?? 'ghost-native',
             files: Object.keys(template?.files ?? {}),
             adminModules: Object.keys(template?.files ?? {}).filter((file) => file.includes('src/admin/modules/'))
         };
     });
 
+    const stacks = templates.reduce((acc, template) => {
+        const stack = template.stack || 'ghost-native';
+        const bucket = acc.get(stack) || [];
+        bucket.push(template.name);
+        acc.set(stack, bucket);
+        return acc;
+    }, new Map());
+
     return {
         source: 'starter-templates.js',
-        templates
+        templates,
+        stacks: [...stacks.entries()]
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([stack, names]) => ({
+                stack,
+                count: names.length,
+                templates: names
+            }))
     };
 }
 
@@ -518,7 +561,7 @@ export function resolveHelpTopic(topic = null) {
 
     if (topic === 'starters') {
         return {
-            sections: [starterHelpData()],
+            sections: [starterStackGalleryData(), starterHelpData()],
             catalog: buildStarterCatalogData()
         };
     }
