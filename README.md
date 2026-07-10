@@ -39,7 +39,7 @@ npm install
 ```bash
 ghost dev
 ```
-Visit `http://localhost:3000` to see your app in action with full DevTools support.
+Visit `http://localhost:3000` by default, or set `--port` / `--host` to use a different dev address.
 
 ## 🏷️ Release
 Ghost.js `1.0.0` is the first release line for this framework. The release notes and CLI bundle updates are tracked in [`docs/CHANGELOG.md`](./docs/CHANGELOG.md), including the `ghost make:events --with-notifications` bundle option.

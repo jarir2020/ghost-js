@@ -78,9 +78,15 @@ function printDevMetrics(label, metrics, json = false) {
     console.log(`  Last Rebuild: ${payload.rebuildMs}`);
 }
 
+function resolvePort(value, fallback) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
 async function runStaticServer(projectRoot, options = {}) {
     const {
         rootDir = projectRoot,
+        host = '127.0.0.1',
         port = 4173,
         label = 'Ghost Preview'
     } = options;
@@ -102,12 +108,15 @@ async function runStaticServer(projectRoot, options = {}) {
     });
 
     await new Promise((resolve) => {
-        server.listen(port, () => resolve());
+        server.listen(port, host, () => resolve());
     });
 
     const address = server.address();
     const resolvedPort = typeof address === 'object' && address ? address.port : port;
-    console.log(`${label}: http://127.0.0.1:${resolvedPort}`);
+    const resolvedHost = typeof address === 'object' && address && typeof address.address === 'string'
+        ? address.address
+        : host;
+    console.log(`${label}: http://${resolvedHost}:${resolvedPort}`);
 
     return server;
 }
@@ -133,7 +142,8 @@ function buildFallbackRuntimeBundle(projectRoot, { entryPoint = 'src/index.js', 
     checkSize(join(projectRoot, outdir, 'bundle.js'));
 }
 
-function startFallbackRuntimeWatch(projectRoot, { outdir, label, port = 3000, metrics = false, jsonMetrics = false }) {
+function startFallbackRuntimeWatch(projectRoot, { outdir, label, host = '127.0.0.1', port = 3000, metrics = false, jsonMetrics = false }) {
+    const resolvedPort = resolvePort(port, resolvePort(process.env.GHOST_PORT ?? process.env.PORT, 3000));
     let lastRebuildMs = null;
     let watcherCount = 0;
 
@@ -147,7 +157,8 @@ function startFallbackRuntimeWatch(projectRoot, { outdir, label, port = 3000, me
 
     const serverPromise = runStaticServer(projectRoot, {
         rootDir: projectRoot,
-        port,
+        host,
+        port: resolvedPort,
         label
     });
 
@@ -232,9 +243,12 @@ export async function build(projectRoot, options = {}) {
 
 export async function serve(projectRoot, options = {}) {
     const {
+        host = process.env.GHOST_HOST || process.env.HOST || '127.0.0.1',
+        port = null,
         metrics = false,
         jsonMetrics = false
     } = options;
+    const resolvedPort = resolvePort(port, resolvePort(process.env.GHOST_PORT ?? process.env.PORT, 3000));
 
     console.log(`Starting Ghost dev server at ${projectRoot}...`);
 
@@ -243,7 +257,8 @@ export async function serve(projectRoot, options = {}) {
         await startFallbackRuntimeWatch(projectRoot, {
             outdir: 'dist/dev',
             label: 'Ghost Dev Server',
-            port: 0,
+            host,
+            port: resolvedPort,
             metrics,
             jsonMetrics
         });
@@ -266,12 +281,15 @@ export async function serve(projectRoot, options = {}) {
 
     await ctx.watch();
 
-    const { host, port } = await ctx.serve({
+    const served = await ctx.serve({
         servedir: projectRoot,
-        port: 3000
+        host,
+        port: resolvedPort
     });
 
-    console.log(`Ghost Dev Server: http://${host}:${port}`);
+    const servedHost = served?.host || host;
+    const servedPort = served?.port || resolvedPort;
+    console.log(`Ghost Dev Server: http://${servedHost}:${servedPort}`);
     if (metrics) {
         printDevMetrics('Ghost Dev Server', {
             ...snapshotMemoryUsage(),
@@ -284,6 +302,7 @@ export async function serve(projectRoot, options = {}) {
 
 export async function preview(projectRoot, options = {}) {
     const {
+        host = '127.0.0.1',
         port = 4173
     } = options;
 
@@ -294,6 +313,7 @@ export async function preview(projectRoot, options = {}) {
 
     return runStaticServer(projectRoot, {
         rootDir: projectRoot,
+        host,
         port,
         label: 'Ghost Preview'
     });
@@ -315,7 +335,13 @@ export async function clean(projectRoot) {
     console.log('Ghost clean: removed isolated runtime outputs and caches.');
 }
 
-export async function watch(projectRoot) {
+export async function watch(projectRoot, options = {}) {
+    const {
+        host = process.env.GHOST_HOST || process.env.HOST || '127.0.0.1',
+        port = null
+    } = options;
+    const resolvedPort = resolvePort(port, resolvePort(process.env.GHOST_PORT ?? process.env.PORT, 3000));
+
     console.log(`Watching Ghost project at ${projectRoot}...`);
 
     const esbuild = await import('esbuild').catch(() => null);
@@ -323,7 +349,8 @@ export async function watch(projectRoot) {
         await startFallbackRuntimeWatch(projectRoot, {
             outdir: 'dist/watch',
             label: 'Ghost Watch',
-            port: 0
+            host,
+            port: resolvedPort
         });
         console.log('Ghost Watch: output isolated to dist/watch/');
         return;

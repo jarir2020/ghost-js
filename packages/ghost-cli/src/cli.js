@@ -61,6 +61,14 @@ function getNumericOption(name, fallback = null) {
     return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function getStringOption(name, fallback = null) {
+    const value = getOption(name, fallback);
+    if (value === null || value === undefined || value === true) {
+        return fallback;
+    }
+    return String(value);
+}
+
 function buildMissingGroups(missing = [], includeSource = false) {
     const groups = new Map();
 
@@ -675,22 +683,36 @@ if ((command === 'create' || command === 'init' || command === 'make:starter')) 
 } else if (command === 'start') {
     const { build, preview } = await import('./bundler.js');
     await build(projectRoot);
-    await preview(projectRoot, { port: getNumericOption('port', 4173) });
+    await preview(projectRoot, {
+        port: getNumericOption('port', 4173),
+        host: getStringOption('host', '127.0.0.1')
+    });
 } else if (command === 'preview') {
     const { preview } = await import('./bundler.js');
-    await preview(projectRoot, { port: getNumericOption('port', 4173) });
+    await preview(projectRoot, {
+        port: getNumericOption('port', 4173),
+        host: getStringOption('host', '127.0.0.1')
+    });
 } else if (command === 'dev') {
     const { serve } = await import('./bundler.js');
     await serve(projectRoot, {
+        host: getStringOption('host', '127.0.0.1'),
+        port: getNumericOption('port', null),
         metrics: Boolean(getOption('metrics', false)),
         jsonMetrics: Boolean(getOption('json', false))
     });
 } else if (command === 'watch') {
     const { watch } = await import('./bundler.js');
-    await watch(projectRoot);
+    await watch(projectRoot, {
+        host: getStringOption('host', '127.0.0.1'),
+        port: getNumericOption('port', null)
+    });
 } else if (command === 'serve') {
     const { preview } = await import('./bundler.js');
-    await preview(projectRoot, { port: getNumericOption('port', 4173) });
+    await preview(projectRoot, {
+        port: getNumericOption('port', 4173),
+        host: getStringOption('host', '127.0.0.1')
+    });
 } else if (command === 'clean') {
     const { clean } = await import('./bundler.js');
     await clean(projectRoot);

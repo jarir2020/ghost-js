@@ -223,12 +223,17 @@ export async function testRuntimeCommands() {
         writeFileSync(join(devRoot, 'src', 'index.js'), `console.log('hello from dev runtime test');\n`);
         writeFileSync(join(devRoot, 'index.html'), `<!doctype html>\n<html lang="en">\n<head><meta charset="utf-8"><title>Ghost Dev Runtime Test</title></head>\n<body>\n    <main id="app">Dev Runtime Test</main>\n    <script type="module" src="/dist/dev/bundle.js"></script>\n</body>\n</html>\n`);
 
-        const devChild = spawn('node', [cliPath, 'dev'], {
+        const customDevPort = 0;
+        const devChild = spawn('node', [cliPath, 'dev', `--port=${customDevPort}`], {
             cwd: devRoot,
             stdio: ['ignore', 'pipe', 'pipe']
         });
 
         const devPort = await waitForServerPort(devChild, 'Ghost Dev Server');
+        if (devPort === 3000 || devPort <= 0) {
+            devChild.kill('SIGTERM');
+            throw new Error(`ghost dev still appears to be pinned to the default port (got ${devPort})`);
+        }
 
         const devResponse = await fetchText(`http://127.0.0.1:${devPort}/`);
         if (devResponse.statusCode !== 200 || !devResponse.body.includes('Dev Runtime Test')) {
