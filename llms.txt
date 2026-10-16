@@ -1,0 +1,34 @@
+# Ghost.js
+
+> Compiler-first reactive JavaScript framework distributed as an npm workspace monorepo.
+
+Ghost.js provides reactive primitives, a template compiler, routing, HTTP helpers, events, data adapters, and a CLI. Its mobile build emits a single-file WebView bundle. Native Android hosting and native plugins belong to the separate Specter Bridge project.
+
+## Start here
+
+- [README](README.md): overview, install, CLI usage, and framework packages.
+- [Mobile and WebView builds](docs/MOBILE.md): `ghost build --target=mobile`, output layout, asset requirements, and WebView notes.
+- [Signals](docs/SIGNALS.md): reactive core concepts.
+- [Router](docs/ROUTER.md): routing behavior.
+- [HTTP](docs/HTTP.md): network helpers.
+- [Bridge](docs/BRIDGE.md): Ghost's browser persistence helper (`persistSignal`).
+- [Changelog](docs/CHANGELOG.md): release history.
+
+## Repository layout
+
+- `packages/core`: reactive runtime and browser persistence.
+- `packages/compiler`: template compiler and build pipeline.
+- `packages/ghost-cli`: project generator, dev server, and build commands.
+- `packages/router`, `packages/events`, `packages/database`, `packages/paradigms`: supporting packages.
+- `demo-app`: framework example.
+
+## Common commands
+
+- `npm install`: install workspace dependencies.
+- `npm test`: run package tests.
+- `npm run size`: check the configured core bundle-size limit.
+- `ghost build --target=mobile`: produce `dist/build/index.html` and `dist/build/bundle.js` for a WebView host.
+
+## Native Android
+
+Ghost.js builds the web UI. For native Android hosting, plugin transport, and setup instructions, see [Specter Bridge](https://github.com/jarir2020/specter-bridge) and its [Ghost.js integration guide](https://github.com/jarir2020/specter-bridge/blob/main/docs/ghostjs-integration.md).

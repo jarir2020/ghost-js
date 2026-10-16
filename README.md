@@ -46,7 +46,9 @@ Visit `http://localhost:3000` by default, or set `--port` / `--host` to use a di
 ```bash
 ghost build --target=mobile
 ```
-This writes a single-file bundle and `dist/build/index.html` for a Capacitor `webDir`. See the [Android and WebView guide](./docs/MOBILE.md) for setup and BridgeJS architecture notes.
+This writes a single-file bundle and `dist/build/index.html` for a Capacitor or other WebView host. See the [Android and WebView guide](./docs/MOBILE.md) for build setup and asset requirements.
+
+For the Android host and native plugin runtime, see [Specter Bridge](https://github.com/jarir2020/specter-bridge) and its [Ghost.js integration guide](https://github.com/jarir2020/specter-bridge/blob/main/docs/ghostjs-integration.md). Ghost.js produces the web assets; Specter Bridge packages and serves them in its Android WebView.
 
 ## 🏷️ Release
 Ghost.js `1.0.0` is the first release line for this framework. The release notes and CLI bundle updates are tracked in [`docs/CHANGELOG.md`](./docs/CHANGELOG.md), including the `ghost make:events --with-notifications` bundle option.
@@ -72,3 +74,7 @@ Ghost.js is unopinionated about your syntax. Choose the API that fits your team:
 
 ---
 Built with 👻 by the Ghost.js Team.
+
+## License
+
+Ghost.js is available under the [MIT License](LICENSE).

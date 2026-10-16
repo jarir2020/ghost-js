@@ -12,5 +12,6 @@
     "publishConfig": {
         "access": "public"
     },
-    "types": "index.d.ts"
+    "types": "index.d.ts",
+    "license": "MIT"
 }

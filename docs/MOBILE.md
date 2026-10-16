@@ -38,8 +38,8 @@ Keep local asset URLs relative to the generated `index.html`, and make sure file
 
 Android WebView is Chromium-based. When module loading or lazy chunks fail, inspect the WebView origin and the paths to the emitted files before treating ES modules as unsupported. Android recommends loading app content with an HTTP(S) origin such as `WebViewAssetLoader`; `file://` and `data:` pages have opaque origins and can break normal same-origin resource behavior. See Android's [local content guidance](https://developer.android.com/develop/ui/views/layout/webapps/load-local-content).
 
-## BridgeJS project boundary
+## Specter Bridge project boundary
 
-`@ghost-js/core` already uses `packages/core/src/bridge.js` for `persistSignal()` and local-storage persistence. Keep the native plugin transport and its Android/iOS runtimes in a separate `bridgejs` package or repository.
+`@ghost-js/core` already uses `packages/core/src/bridge.js` for `persistSignal()` and local-storage persistence. Native plugin transport and Android hosting are provided by the separate [Specter Bridge](https://github.com/jarir2020/specter-bridge) project. See its [Ghost.js integration guide](https://github.com/jarir2020/specter-bridge/blob/main/docs/ghostjs-integration.md).
 
-For the Android MVP, define the message format, plugin method allowlist, callback timeout and cleanup behavior, and native permission lifecycle before adding camera or storage plugins. Android currently recommends `WebMessageListener` with allowed origins; `addJavascriptInterface` is a legacy option exposed to every frame in the WebView. See the [Android JavaScript bridge guidance](https://developer.android.com/develop/ui/views/layout/webapps/native-api-access-jsbridge).
+Specter Bridge uses an origin-restricted `WebMessageListener`, app assets served by `WebViewAssetLoader`, and a request/response plugin protocol. Android recommends `WebMessageListener` with allowed origins; `addJavascriptInterface` is a legacy option exposed to every frame in the WebView. See the [Android JavaScript bridge guidance](https://developer.android.com/develop/ui/views/layout/webapps/native-api-access-jsbridge).
