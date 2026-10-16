@@ -212,7 +212,8 @@ publish_package() {
     fi
 
     if [[ ! -t 0 ]]; then
-      echo "npm requires a 2FA code. Rerun in a terminal, set NPM_OTP, or use a publish token with 2FA bypass enabled." >&2
+      echo "npm requires account 2FA or a granular access token with Bypass 2FA enabled." >&2
+      echo "If account 2FA is disabled, authenticate npm with a granular token that has package read/write access and Bypass 2FA enabled, then rerun this command." >&2
       return "$status"
     fi
 
@@ -224,12 +225,18 @@ publish_package() {
     if [[ -n "$npm_otp" ]]; then
       echo "The provided 2FA code was rejected or expired; enter the current code." >&2
     fi
-    printf 'Enter the current npm authenticator code for %s: ' "$name" >&2
+    echo "npm requires either account-level 2FA or a granular access token with Bypass 2FA enabled." >&2
+    echo "If account 2FA is disabled, press Enter to stop and configure a bypass token." >&2
+    printf 'If account 2FA is enabled, enter its current authenticator code for %s: ' "$name" >&2
     if ! IFS= read -r -s npm_otp; then
       printf '\n' >&2
       return "$status"
     fi
     printf '\n' >&2
+    if [[ -z "$npm_otp" ]]; then
+      echo "No code entered. Create a granular npm access token with Read and write (publish and stage) access to the @ghost-js packages and enable Bypass 2FA. Authenticate npm with that token, then rerun ./publish.sh --publish." >&2
+      return "$status"
+    fi
     attempts=$((attempts + 1))
   done
 }
