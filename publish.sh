@@ -77,6 +77,7 @@ next_patch() {
 declare -A package_names
 declare -A current_versions
 declare -A release_versions
+npm_otp="${NPM_OTP:-}"
 
 plan_release() {
   local workspace name current latest base current_status compare_status target target_status status
@@ -179,6 +180,60 @@ apply_release_versions() {
   npm install --package-lock-only --ignore-scripts --no-audit --no-fund
 }
 
+publish_package() {
+  local workspace="$1"
+  local name="$2"
+  local version="$3"
+  local output status attempts=0
+  local -a otp_args
+
+  while true; do
+    otp_args=()
+    if [[ -n "$npm_otp" ]]; then
+      otp_args+=("--otp=$npm_otp")
+    fi
+
+    if output=$(npm publish \
+      --registry="$registry" \
+      --workspace="$workspace" \
+      --access public \
+      "${otp_args[@]}" 2>&1); then
+      printf '%s\n' "$output"
+      return 0
+    else
+      status=$?
+    fi
+
+    printf '%s\n' "$output" >&2
+    if [[ "$output" != *"Two-factor authentication"* \
+      && "$output" != *"one-time password"* \
+      && "$output" != *EOTP* ]]; then
+      return "$status"
+    fi
+
+    if [[ ! -t 0 ]]; then
+      echo "npm requires a 2FA code. Rerun in a terminal, set NPM_OTP, or use a publish token with 2FA bypass enabled." >&2
+      return "$status"
+    fi
+
+    if (( attempts >= 3 )); then
+      echo "npm rejected three 2FA codes; stopping the release." >&2
+      return "$status"
+    fi
+
+    if [[ -n "$npm_otp" ]]; then
+      echo "The provided 2FA code was rejected or expired; enter the current code." >&2
+    fi
+    printf 'Enter the current npm authenticator code for %s: ' "$name" >&2
+    if ! IFS= read -r -s npm_otp; then
+      printf '\n' >&2
+      return "$status"
+    fi
+    printf '\n' >&2
+    attempts=$((attempts + 1))
+  done
+}
+
 mode="${1:---dry-run}"
 if [[ "$#" -gt 1 ]]; then
   echo "Usage: $0 [--dry-run|--publish]" >&2
@@ -214,7 +269,7 @@ case "$mode" in
       name="${package_names[$workspace]}"
       version="${release_versions[$workspace]}"
       echo "Publishing $name@$version"
-      npm publish --registry="$registry" --workspace="$workspace" --access public
+      publish_package "$workspace" "$name" "$version"
     done
     ;;
 
