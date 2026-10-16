@@ -199,19 +199,44 @@ function startFallbackRuntimeWatch(projectRoot, { outdir, label, host = '127.0.0
     return serverPromise;
 }
 
+function writeMobileIndex(projectRoot) {
+    const indexPath = join(projectRoot, 'index.html');
+    if (!existsSync(indexPath)) {
+        throw new Error('The mobile build needs an index.html in the project root.');
+    }
+
+    const html = readFileSync(indexPath, 'utf8');
+    const runtimeLoader = /<script\b(?=[^>]*\bdata-ghost-runtime-loader\b)[^>]*>[\s\S]*?<\/script\s*>/i;
+    if (!runtimeLoader.test(html)) {
+        throw new Error('Mark the Ghost runtime loader in index.html with data-ghost-runtime-loader so the mobile build can replace it with a single-file script tag.');
+    }
+
+    const mobileHtml = html.replace(runtimeLoader, '<script src="./bundle.js"></script>');
+    writeFileSync(join(projectRoot, 'dist/build/index.html'), mobileHtml);
+}
+
 export async function build(projectRoot, options = {}) {
     const {
         entryPoint = 'src/index.js',
         outfile = 'dist/build/bundle.js',
         minify = true,
-        sourcemap = false  // 'inline' in dev, true (external) in prod — 2026-04-06
+        sourcemap = false,
+        target = 'web'
     } = options;
+
+    if (!['web', 'mobile'].includes(target)) {
+        throw new Error(`Unknown build target "${target}". Use "web" or "mobile".`);
+    }
+    const mobileTarget = target === 'mobile';
 
     const outPath = join(projectRoot, outfile);
     console.log(`Building Ghost project at ${projectRoot}...`);
 
     const esbuild = await import('esbuild').catch(() => null);
     if (!esbuild) {
+        if (mobileTarget) {
+            throw new Error('The mobile build target requires esbuild. Install the project dependencies and run the build again.');
+        }
         buildFallbackRuntimeBundle(projectRoot, { entryPoint, outdir: 'dist/build' });
         console.log('Build completed successfully! (fallback mode)');
         return;
@@ -227,13 +252,14 @@ export async function build(projectRoot, options = {}) {
             outdir: join(projectRoot, 'dist/build'),
             minify,
             sourcemap,
-            format: 'esm',
+            format: mobileTarget ? 'iife' : 'esm',
             platform: 'browser',
-            splitting: true,           // enables lazyNode() code splitting
+            splitting: !mobileTarget,
             plugins: [ghostPlugin(), ghostAssetPlugin()],
             loader: { '.js': 'jsx', '.png': 'file', '.jpg': 'file' },
         });
-        console.log('Build completed successfully!');
+        if (mobileTarget) writeMobileIndex(projectRoot);
+        console.log(`Build completed successfully! (${target} target)`);
         checkSize(join(projectRoot, 'dist/build/bundle.js'));
     } catch (e) {
         console.error('Build failed:', e.message);

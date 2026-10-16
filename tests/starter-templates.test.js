@@ -25,7 +25,7 @@ export async function testStarterTemplates() {
         }
 
         const packageJson = JSON.parse(readFileSync(join(root, 'acme-blog', 'package.json'), 'utf8'));
-        if (!packageJson.dependencies || packageJson.dependencies['@ghost-js/database'] !== '0.2.0') {
+        if (!packageJson.dependencies || packageJson.dependencies['@ghost-js/database'] !== '^1.0.0') {
             throw new Error('starter package.json did not include the database package dependency');
         }
 

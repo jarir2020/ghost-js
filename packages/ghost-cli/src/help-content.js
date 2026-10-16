@@ -215,7 +215,7 @@ const commandCatalog = [
     },
     {
         name: 'ghost build',
-        purpose: 'compile the project',
+        purpose: 'compile the project (use --target=mobile for a single-file WebView bundle)',
         category: 'runtime',
         outputs: ['dist/build/']
     },

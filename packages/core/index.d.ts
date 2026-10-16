@@ -33,7 +33,7 @@ export function asyncSignal<T>(fetcher: () => Promise<T>): AsyncSignal<T>;
 export interface GhostNode {
     tag: string;
     props: Record<string, any>;
-    children: GhostChild[];
+    children: GhostChildren;
     el: HTMLElement | null;
     effects: Array<() => void>;
     events: {
@@ -44,17 +44,18 @@ export interface GhostNode {
     };
 }
 
-export type GhostChild = string | number | GhostNode | (() => string | number) | GhostListDescriptor | GhostWhenDescriptor | GhostLazyDescriptor;
+export type GhostChild = string | number | boolean | null | undefined | GhostNode | GhostChild[] | (() => GhostChild) | GhostListDescriptor | GhostWhenDescriptor | GhostLazyDescriptor;
+export type GhostChildren = GhostChild | (() => GhostChild);
 
 export interface GhostListDescriptor { __ghostList: true; }
 export interface GhostWhenDescriptor { __ghostWhen: true; }
 export interface GhostLazyDescriptor { __ghostLazy: true; }
 
-export function createNode(tag: string, props: Record<string, any>, children?: GhostChild[]): GhostNode;
+export function createNode(tag: string, props: Record<string, any>, children?: GhostChildren): GhostNode;
 export function on(node: GhostNode, event: 'mount' | 'update' | 'destroy' | 'error', fn: Function): void;
 export function onNodeError(node: GhostNode, fn: (err: Error) => void): void;
-export function mount(node: GhostNode | GhostListDescriptor | GhostWhenDescriptor, parentEl: HTMLElement): void;
-export function destroy(node: GhostNode | GhostListDescriptor | GhostWhenDescriptor): void;
+export function mount(node: GhostNode | GhostListDescriptor | GhostWhenDescriptor | GhostLazyDescriptor, parentEl: HTMLElement): void;
+export function destroy(node: GhostNode | GhostListDescriptor | GhostWhenDescriptor | GhostLazyDescriptor): void;
 export function scheduleUpdate(fn: () => void): void;
 
 export function createList<T>(
@@ -82,9 +83,9 @@ export function lazyNode(
 
 // ─── SSR ──────────────────────────────────────────────────────────────────────
 
-export function renderToString(node: GhostChild): string;
-export function renderToStream(node: GhostChild): AsyncGenerator<string>;
-export function renderWithState(node: GhostChild, state?: Record<string, any>): string;
+export function renderToString(node: GhostChild | GhostChildren): string;
+export function renderToStream(node: GhostChild | GhostChildren): AsyncGenerator<string>;
+export function renderWithState(node: GhostChild | GhostChildren, state?: Record<string, any>): string;
 export function hydrate(App: GhostNode, container: HTMLElement): void;
 
 // ─── Style ────────────────────────────────────────────────────────────────────

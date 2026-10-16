@@ -401,6 +401,10 @@ export function applyDoctorFixes(projectRoot, report = null, { templateName = 'b
             name: 'ghost-app',
             version: '1.0.0',
             type: 'module',
+            dependencies: {
+                '@ghost-js/core': '^1.0.0',
+                '@ghost-js/cli': '^1.0.2'
+            },
             scripts: {
                 dev: 'ghost dev',
                 build: 'ghost build',
@@ -414,7 +418,7 @@ export function applyDoctorFixes(projectRoot, report = null, { templateName = 'b
     }
 
     if (doctorReport.missing.includes('index.html')) {
-        repairFile('index.html', baselineFiles['index.html'] ?? `<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>Ghost.js App</title>\n</head>\n<body>\n    <script type="module">\n        const candidates = ['/dist/dev/bundle.js', '/dist/build/bundle.js'];\n        for (const source of candidates) {\n            try {\n                await import(source);\n                break;\n            } catch {\n                // Try the next isolated output directory.\n            }\n        }\n    </script>\n</body>\n</html>\n`);
+        repairFile('index.html', baselineFiles['index.html'] ?? `<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>Ghost.js App</title>\n</head>\n<body>\n    <script type="module" data-ghost-runtime-loader>\n        const candidates = ['/dist/dev/bundle.js', '/dist/build/bundle.js'];\n        for (const source of candidates) {\n            try {\n                await import(source);\n                break;\n            } catch {\n                // Try the next isolated output directory.\n            }\n        }\n    </script>\n</body>\n</html>\n`);
     }
 
     if (doctorReport.missing.includes('README.md')) {

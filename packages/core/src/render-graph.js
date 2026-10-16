@@ -44,10 +44,9 @@ export function mount(node, parentEl) {
     if (node.__ghostWhen) { _mountWhen(node, parentEl); return; }
     if (node.__ghostLazy) { _mountLazy(node, parentEl); return; }
 
-    node.props    = node.props    || {};
-    node.effects  = node.effects  || [];
-    node.children = node.children || [];
-    node.events   = node.events   || { mount: [], update: [], destroy: [], error: [] };
+    node.props   = node.props   || {};
+    node.effects = node.effects || [];
+    node.events  = node.events  || { mount: [], update: [], destroy: [], error: [] };
 
     if (!node.tag) return;
     nodes.add(node);
@@ -73,38 +72,99 @@ export function mount(node, parentEl) {
         }
     });
 
-    // Children
-    node.children.forEach(child => {
-        if (child == null) return;
-
-        if (child.__ghostList || child.__ghostWhen || child.__ghostLazy) {
-            mount(child, el);
-        } else if (typeof child === 'string' || typeof child === 'number') {
-            el.appendChild(document.createTextNode(String(child)));
-        } else if (typeof child === 'function') {
-            let current = null;
-            node.effects.push(effect(() => {
-                const val = child();
-                const next = document.createTextNode(String(val ?? ''));
-                if (current) el.replaceChild(next, current);
-                else el.appendChild(next);
-                current = next;
-                recordUpdate();
-                node.events.update?.forEach(fn => fn());
-            }));
-        } else {
-            mount(child, el);
-        }
-    });
+    // Children may be static values or a reactive getter returning a value,
+    // node, or array of children.
+    if (typeof node.children === 'function') {
+        _mountReactiveChildren(node.children, el, node);
+    } else {
+        const children = node.children == null
+            ? []
+            : Array.isArray(node.children) ? node.children : [node.children];
+        children.forEach(child => _mountChild(child, el, null, node.effects, node));
+    }
 
     parentEl.appendChild(el);
     node.events.mount?.forEach(fn => fn());
+}
+
+function _mountChild(child, parentEl, before, cleanups, ownerNode) {
+    if (child == null || typeof child === 'boolean') return;
+
+    if (Array.isArray(child)) {
+        child.forEach(nested => _mountChild(nested, parentEl, before, cleanups, ownerNode));
+        return;
+    }
+
+    if (typeof child === 'string' || typeof child === 'number') {
+        const text = document.createTextNode(String(child));
+        parentEl.insertBefore(text, before);
+        cleanups.push(() => {
+            if (text.parentNode) text.parentNode.removeChild(text);
+        });
+        return;
+    }
+
+    if (typeof child === 'function') {
+        const text = document.createTextNode('');
+        parentEl.insertBefore(text, before);
+        const stop = effect(() => {
+            const value = child();
+            text.textContent = value == null ? '' : String(value);
+            recordUpdate();
+            ownerNode?.events.update?.forEach(fn => fn());
+        });
+        cleanups.push(() => {
+            stop();
+            if (text.parentNode) text.parentNode.removeChild(text);
+        });
+        return;
+    }
+
+    if (typeof child === 'object') {
+        const slot = document.createElement('ghost-child-slot');
+        mount(child, slot);
+        while (slot.firstChild) parentEl.insertBefore(slot.firstChild, before);
+        cleanups.push(() => destroy(child));
+    }
+}
+
+function _disposeChildren(cleanups) {
+    for (let i = cleanups.length - 1; i >= 0; i--) {
+        cleanups[i]();
+    }
+    cleanups.length = 0;
+}
+
+function _mountReactiveChildren(getChildren, parentEl, ownerNode) {
+    const start = document.createComment('[ghost-children]');
+    const end = document.createComment('[/ghost-children]');
+    parentEl.appendChild(start);
+    parentEl.appendChild(end);
+
+    let childCleanups = [];
+    const stop = effect(() => {
+        const value = getChildren();
+        _disposeChildren(childCleanups);
+
+        const children = value == null ? [] : Array.isArray(value) ? value : [value];
+        children.forEach(child => _mountChild(child, parentEl, end, childCleanups, ownerNode));
+        recordUpdate();
+        ownerNode.events.update?.forEach(fn => fn());
+    });
+
+    ownerNode.effects.push(() => {
+        stop();
+        _disposeChildren(childCleanups);
+        if (start.parentNode) start.parentNode.removeChild(start);
+        if (end.parentNode) end.parentNode.removeChild(end);
+    });
 }
 
 export function destroy(node) {
     if (!node) return;
     if (node._listCleanup) { node._listCleanup(); return; }
     if (node._whenCleanup) { node._whenCleanup(); return; }
+    if (node._lazyCleanup) { node._lazyCleanup(); return; }
     node.effects?.forEach(c => c());
     node.events?.destroy?.forEach(fn => fn());
     if (node.el?.parentNode) node.el.parentNode.removeChild(node.el);
@@ -351,6 +411,7 @@ function _mountLazy(descriptor, parentEl) {
     parentEl.appendChild(anchor);
 
     // Show fallback immediately
+    let disposed = false;
     let current = null;
     if (fallback) {
         const tmp = document.createElement('ghost-lazy-slot');
@@ -359,7 +420,17 @@ function _mountLazy(descriptor, parentEl) {
         current = fallback;
     }
 
-    importFn().then(mod => {
+    descriptor._lazyCleanup = () => {
+        disposed = true;
+        if (current) {
+            destroy(current);
+            current = null;
+        }
+        if (anchor.parentNode) anchor.parentNode.removeChild(anchor);
+    };
+
+    Promise.resolve().then(importFn).then(mod => {
+        if (disposed) return;
         const factory = mod.default || mod;
         if (current) { destroy(current); current = null; }
         const node = typeof factory === 'function' ? factory() : factory;
@@ -368,7 +439,7 @@ function _mountLazy(descriptor, parentEl) {
         while (tmp.firstChild) parentEl.insertBefore(tmp.firstChild, anchor);
         current = node;
     }).catch(err => {
-        console.error('[Ghost] lazyNode failed to load:', err);
+        if (!disposed) console.error('[Ghost] lazyNode failed to load:', err);
     });
 }
 

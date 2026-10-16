@@ -3,12 +3,12 @@ const basePackageJson = (projectName) => ({
     version: '1.0.0',
     type: 'module',
     dependencies: {
-        '@ghost-js/core': '0.2.0',
-        '@ghost-js/events': '0.2.0',
-        '@ghost-js/database': '0.2.0',
-        '@ghost-js/paradigms': '0.2.0',
-        '@ghost-js/router': '0.2.0',
-        '@ghost-js/cli': '0.2.1'
+        '@ghost-js/core': '^1.0.0',
+        '@ghost-js/events': '^1.0.0',
+        '@ghost-js/database': '^1.0.0',
+        '@ghost-js/paradigms': '^1.0.0',
+        '@ghost-js/router': '^1.0.0',
+        '@ghost-js/cli': '^1.0.2'
     },
     scripts: {
         dev: 'ghost dev',
@@ -170,7 +170,7 @@ const sharedHtml = (projectName) => `
     <title>${projectName}</title>
 </head>
 <body>
-    <script type="module">
+    <script type="module" data-ghost-runtime-loader>
         const candidates = ['/dist/dev/bundle.js', '/dist/build/bundle.js'];
         for (const source of candidates) {
             try {

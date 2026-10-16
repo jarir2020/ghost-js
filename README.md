@@ -41,6 +41,13 @@ ghost dev
 ```
 Visit `http://localhost:3000` by default, or set `--port` / `--host` to use a different dev address.
 
+### Build for Android WebViews
+
+```bash
+ghost build --target=mobile
+```
+This writes a single-file bundle and `dist/build/index.html` for a Capacitor `webDir`. See the [Android and WebView guide](./docs/MOBILE.md) for setup and BridgeJS architecture notes.
+
 ## 🏷️ Release
 Ghost.js `1.0.0` is the first release line for this framework. The release notes and CLI bundle updates are tracked in [`docs/CHANGELOG.md`](./docs/CHANGELOG.md), including the `ghost make:events --with-notifications` bundle option.
 

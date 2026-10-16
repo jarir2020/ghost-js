@@ -28,7 +28,7 @@ export function renderToString(node) {
     // Plain node object
     const tag      = node.tag;
     const props    = node.props    || {};
-    const children = node.children || [];
+    const children = node.children;
 
     if (!tag) return '';
 
@@ -44,7 +44,8 @@ export function renderToString(node) {
         })
         .join('');
 
-    const childrenStr = children.map(renderToString).join('');
+    const resolvedChildren = typeof children === 'function' ? children() : children;
+    const childrenStr = renderToString(resolvedChildren);
 
     // Void elements need no closing tag
     const voidTags = new Set(['area','base','br','col','embed','hr','img','input',
@@ -84,7 +85,7 @@ export async function* renderToStream(node) {
 
     const tag      = node.tag;
     const props    = node.props    || {};
-    const children = node.children || [];
+    const children = node.children;
 
     if (!tag) return;
 
@@ -99,6 +100,7 @@ export async function* renderToStream(node) {
         .join('');
 
     yield `<${tag}${propsStr}>`;
-    for (const child of children) yield* renderToStream(child);
+    const resolvedChildren = typeof children === 'function' ? children() : children;
+    yield* renderToStream(resolvedChildren);
     yield `</${tag}>`;
 }

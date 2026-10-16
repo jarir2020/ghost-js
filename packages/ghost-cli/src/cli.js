@@ -679,7 +679,9 @@ if ((command === 'create' || command === 'init' || command === 'make:starter')) 
     }
 } else if (command === 'build') {
     const { build } = await import('./bundler.js');
-    await build(projectRoot);
+    await build(projectRoot, {
+        target: getStringOption('target', 'web')
+    });
 } else if (command === 'start') {
     const { build, preview } = await import('./bundler.js');
     await build(projectRoot);
